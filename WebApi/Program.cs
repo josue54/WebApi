@@ -1,11 +1,29 @@
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Enable CORS for development environment
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("_myAllowAllPolicy", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
 
+// Add services to the container
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Configure Kestrel to listen on a specific port with HTTPS
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(7126, listenOptions =>
+    {
+        listenOptions.UseHttps(); // Use default development certificate
+    });
+});
 
 var app = builder.Build();
 
@@ -19,6 +37,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+// Apply CORS middleware
+app.UseCors("_myAllowAllPolicy");
 
 app.MapControllers();
 

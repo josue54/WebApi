@@ -30,6 +30,39 @@ namespace WebApi.Services
                 // Write SQL query
                 string sql = "SELECT url FROM images WHERE id = @lastDigit";
 
+                string sql2 = @"
+                    CREATE TABLE IF NOT EXISTS images (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        url TEXT NOT NULL
+                    );";
+
+                string sql3 = @"INSERT INTO images (url) VALUES (@url)";
+
+                var imageData = new[] {
+                    new { url = "https://api.dicebear.com/8.x/pixel-art/png?seed=0&size=150" },
+                    new { url = "https://api.dicebear.com/8.x/pixel-art/png?seed=1&size=150" },
+                    new { url = "https://api.dicebear.com/8.x/pixel-art/png?seed=2&size=150" },
+                    new { url = "https://api.dicebear.com/8.x/pixel-art/png?seed=3&size=150" },
+                    new { url = "https://api.dicebear.com/8.x/pixel-art/png?seed=4&size=150" },
+                    new { url = "https://api.dicebear.com/8.x/pixel-art/png?seed=5&size=150" },
+
+                };
+
+                using (var command = new SQLiteCommand(sql2, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+
+                using (var command = new SQLiteCommand(sql3, connection))
+                {
+                    foreach (var data in imageData)
+                    {
+                        command.Parameters.AddWithValue("@url", data.url);
+                        command.ExecuteNonQuery();
+                        command.Parameters.Clear(); // Clear parameters for next iteration
+                    }
+                }
+
                 using (var command = new SQLiteCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@lastDigit", lastDigit);
